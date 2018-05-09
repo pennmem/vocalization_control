@@ -20,7 +20,7 @@ public class EditableExperiment : MonoBehaviour
 
     private void LoadWords()
     {
-        words = GetWordpoolLines("ram_wordpool_en");
+        words = GetWordpoolLines("wordpool_en");
     }
 
     private IEnumerator RunExperiment()
@@ -34,11 +34,12 @@ public class EditableExperiment : MonoBehaviour
             yield return null;
         UnityEPL.AddParticipant(inputField.text);
         inputField.gameObject.SetActive(false);
+        Cursor.visible = false;
 
-        for (int i = 1; i < words.Length; i++)
+        for (int i = 0; i < words.Length; i++)
         {
             yield return PerformTrial(i);
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKey(KeyCode.Space))
             {
                 textDisplayer.DisplayText("resting message", "Resting...");
                 while (!Input.GetKeyDown(KeyCode.Return))
@@ -102,13 +103,22 @@ public class EditableExperiment : MonoBehaviour
         string text = Resources.Load<TextAsset>(path).text;
         string[] lines = text.Split(new[] { '\r', '\n' });
 
-        string[] lines_without_label = new string[lines.Length - 1];
-        for (int i = 1; i < lines.Length; i++)
-        {
-            lines_without_label[i - 1] = lines[i];
-        }
+        Shuffle<string>(new System.Random(), lines);
 
-        return lines_without_label;
+        return lines;
+    }
+
+    //thanks Matt Howells
+    private void Shuffle<T> (System.Random rng, T[] array)
+    {
+        int n = array.Length;
+        while (n > 1) 
+        {
+            int k = rng.Next(n--);
+            T temp = array[n];
+            array[n] = array[k];
+            array[k] = temp;
+        }
     }
 
     //thanks Virtlink from stackoverflow
@@ -134,4 +144,9 @@ public class EditableExperiment : MonoBehaviour
             }
         }
     }
+}
+
+static class RandomExtensions
+{
+
 }
