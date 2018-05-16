@@ -19,7 +19,7 @@ public class EditableExperiment : MonoBehaviour
     private string[] words;
 
     private const string INSTRUCTIONS_MESSAGE = 
-"We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n\n2) After each word, you will see a row of asterisks.While the asterisks are on the screen, say the word you just saw.\n\n3) You may hold down the SPACE BAR to pause the task and take breaks.\n\nIt is very important for you to try to avoid all unnecessary motion while engaged in the study. Please try to limit these activities to the time during the breaks.\n\nYou are now ready to begin the study!\n\nIf you have any remaining questions, please ask the experimenter now.\n\nOtherwise, press RETURN to enter the practice period.";
+"We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n\n2) After each word, you will see a row of asterisks. While the asterisks are on the screen, say the word you just saw.\n\n3) You may hold down the SPACE BAR to pause the task and take breaks.\n\nIt is very important for you to try to avoid all unnecessary motion while engaged in the study. Please try to limit these activities to the time during the breaks.\n\nYou are now ready to begin the study!\n\nIf you have any remaining questions, please ask the experimenter now.\n\nOtherwise, press RETURN to enter the practice period.";
     private const string BREAK_MESSAGE =
 "We will now take some time\nto readjust the electrodes.\nWhen it is time to continue,\npress SPACE and RETURN.";
     private const string EXPERIMENTER_MESSAGE =
@@ -48,18 +48,34 @@ public class EditableExperiment : MonoBehaviour
             yield return null;
         UnityEPL.AddParticipant(inputField.text);
         inputField.gameObject.SetActive(false);
+        if (System.IO.Directory.Exists(UnityEPL.GetParticipantFolder()))
+        {
+            textDisplayer.DisplayText("agnry message", "That participant has already completed this study.");
+            yield return new WaitForSeconds(3f);
+            textDisplayer.ClearText();
+            Quit();
+        }
         Cursor.visible = false;
 
         scriptedEventReporter.ReportScriptedEvent("microphone test begin", new Dictionary<string, object>());
         yield return DoMicrophoneTest();
         scriptedEventReporter.ReportScriptedEvent("microphone test end", new Dictionary<string, object>());
 
+        fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleLeft;
         yield return PressAnyKey(INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
+        fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleCenter;
 
         string[] practiceWords = new string[] { "RHINO", "BEAM", "DOG", "WATERMELON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN" };
         for (int i = 0; i < practiceWords.Length; i++)
         {
             yield return PerformTrial(practiceWords, i, true);
+            if (Input.GetKey(KeyCode.Space))
+            {
+                textDisplayer.DisplayText("resting message", "Resting...");
+                while (!Input.GetKeyDown(KeyCode.Return))
+                    yield return null;
+                textDisplayer.ClearText();
+            }
         }
 
         yield return PressAnyKey("The practice period is complete.  Press RETURN to begin your session.", new KeyCode[] {KeyCode.Return}, textDisplayer);
@@ -94,7 +110,7 @@ public class EditableExperiment : MonoBehaviour
         soundRecorder.StopRecording();
 
         //over
-        textDisplayer.DisplayText("end message", "Yay, this... thing... is over!");
+        textDisplayer.DisplayText("end message", "Yay, the session is over!");
     }
 
     protected IEnumerator DoMicrophoneTest()
@@ -168,11 +184,6 @@ public class EditableExperiment : MonoBehaviour
 
     private IEnumerator PerformTrial(string[] trial_words, int word_index, bool practice)
     {
-        //orient
-        textDisplayer.DisplayText("orientation", "+");
-        yield return new WaitForSeconds(0.5f);
-        textDisplayer.ClearText();
-
         //isi
         yield return new WaitForSeconds(Random.Range(0.4f, 0.6f));
 
@@ -200,7 +211,7 @@ public class EditableExperiment : MonoBehaviour
         soundRecorder.StartRecording(wav_path);
         scriptedEventReporter.ReportScriptedEvent("recall start", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
         textDisplayer.DisplayText("recall prompt", "******");
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(2f);
         textDisplayer.ClearText();
         scriptedEventReporter.ReportScriptedEvent("recall stop", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
         soundRecorder.StopRecording();
