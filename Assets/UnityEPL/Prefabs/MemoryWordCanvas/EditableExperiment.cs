@@ -19,7 +19,7 @@ public class EditableExperiment : MonoBehaviour
     private string[] words;
 
     private const string INSTRUCTIONS_MESSAGE = 
-"We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n\n2) After each word, you will see a row of asterisks. While the asterisks are on the screen, say the word you just saw.\n\n3) You may hold down the SPACE BAR to pause the task and take breaks.\n\nIt is very important for you to try to avoid all unnecessary motion while engaged in the study. Please try to limit these activities to the time during the breaks.\n\nYou are now ready to begin the study!\n\nIf you have any remaining questions, please ask the experimenter now.\n\nOtherwise, press RETURN to enter the practice period.";
+"We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n\n2) After each word, you will see a row of asterisks. While the asterisks are on the screen, say the word you just saw.\n\n3) You may hold down the SPACE BAR to pause the task and take breaks, and RETURN to resume.\n\nIt is very important for you to try to avoid all unnecessary motion while engaged in the study. Please try to limit these activities to the time during the breaks.\n\nYou are now ready to begin the study!\n\nIf you have any remaining questions, please ask the experimenter now.\n\nOtherwise, press RETURN to enter the practice period.";
     private const string BREAK_MESSAGE =
 "We will now take some time\nto readjust the electrodes.\nWhen it is time to continue,\npress SPACE and RETURN.";
     private const string EXPERIMENTER_MESSAGE =
