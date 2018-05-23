@@ -47,14 +47,8 @@ public class EditableExperiment : MonoBehaviour
         while (!Input.GetKeyDown(KeyCode.Return))
             yield return null;
         UnityEPL.AddParticipant(inputField.text);
+        SetSessionNumber();
         inputField.gameObject.SetActive(false);
-        if (System.IO.Directory.Exists(UnityEPL.GetParticipantFolder()))
-        {
-            textDisplayer.DisplayText("agnry message", "That participant has already completed this study.");
-            yield return new WaitForSeconds(3f);
-            textDisplayer.ClearText();
-            Quit();
-        }
         Cursor.visible = false;
 
         scriptedEventReporter.ReportScriptedEvent("microphone test begin", new Dictionary<string, object>());
@@ -85,15 +79,19 @@ public class EditableExperiment : MonoBehaviour
             yield return PerformTrial(words, i, false);
             if (Input.GetKey(KeyCode.Space))
             {
+                scriptedEventReporter.ReportScriptedEvent("optional break start", new Dictionary<string, object>());
                 textDisplayer.DisplayText("resting message", "Resting...");
                 while (!Input.GetKeyDown(KeyCode.Return))
                     yield return null;
                 textDisplayer.ClearText();
+                scriptedEventReporter.ReportScriptedEvent("optional break stop", new Dictionary<string, object>());
             }
             if (i%192 == 0 && i != 0)
             {
+                scriptedEventReporter.ReportScriptedEvent("required break start", new Dictionary<string, object>());
                 yield return PressAnyKey(BREAK_MESSAGE, new KeyCode[] { KeyCode.Return, KeyCode.Space }, fullscreenTextDisplayer);
                 yield return PressAnyKey(EXPERIMENTER_MESSAGE, new KeyCode[] { KeyCode.Y }, textDisplayer);
+                scriptedEventReporter.ReportScriptedEvent("required break stop", new Dictionary<string, object>());
             }
         }
 
@@ -190,7 +188,7 @@ public class EditableExperiment : MonoBehaviour
         //stimulus
         string stimulus = trial_words[word_index];
         scriptedEventReporter.ReportScriptedEvent("stimulus", new Dictionary<string, object> () { { "word", stimulus }, { "index", word_index } });
-        textDisplayer.DisplayText("stimulus", stimulus);
+        textDisplayer.DisplayText("stimulus display", stimulus);
         yield return new WaitForSeconds(1.6f);
         scriptedEventReporter.ReportScriptedEvent("stimulus cleared", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
         textDisplayer.ClearText();
@@ -263,6 +261,17 @@ public class EditableExperiment : MonoBehaviour
             }
         }
     }
+
+    private void SetSessionNumber()
+    {
+        int nextSessionNumber = 0;
+        while (System.IO.Directory.Exists(UnityEPL.GetDataPath()))
+        {
+            nextSessionNumber++;
+            UnityEPL.SetSessionNumber(nextSessionNumber);
+        }
+    }
+
     private void Quit()
     {
         #if UNITY_EDITOR
