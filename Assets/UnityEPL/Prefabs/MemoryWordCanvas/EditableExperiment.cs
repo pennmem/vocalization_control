@@ -51,8 +51,10 @@ public class EditableExperiment : MonoBehaviour
         inputField.gameObject.SetActive(false);
         Cursor.visible = false;
 
+        //Add part here which calls eeg file checking script
+
         yield return null;
-        yield return PressAnyKey("Running " + UnityEPL.GetParticipants()[0] + " session number " + UnityEPL.GetSessionNumber(), new KeyCode[] { KeyCode.Return }, textDisplayer);
+        yield return PressAnyKey(UnityEPL.GetParticipants()[0] + "\nsession " + UnityEPL.GetSessionNumber(), new KeyCode[] { KeyCode.Return }, textDisplayer);
         yield return PressAnyKey("Researcher:\nPlease confirm that the \nimpedance window is closed\nand that sync pulses are showing", new KeyCode[] { KeyCode.Y }, fullscreenTextDisplayer);
         yield return PressAnyKey("Researcher:\nPlease begin the EEG recording now\nand confirm that it is running.", new KeyCode[] { KeyCode.R }, fullscreenTextDisplayer);
 
