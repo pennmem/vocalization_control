@@ -27,7 +27,7 @@ public class EditableExperiment : MonoBehaviour
 
 	void Start()
 	{
-        UnityEPL.SetExperimentName("vocalization_control");
+        UnityEPL.SetExperimentName("VFFR");
         LoadWords();
         StartCoroutine(RunExperiment());
 	}
@@ -50,6 +50,11 @@ public class EditableExperiment : MonoBehaviour
         SetSessionNumber();
         inputField.gameObject.SetActive(false);
         Cursor.visible = false;
+
+        yield return null;
+        yield return PressAnyKey("Running " + UnityEPL.GetParticipants()[0] + " session number " + UnityEPL.GetSessionNumber(), new KeyCode[] { KeyCode.Return }, textDisplayer);
+        yield return PressAnyKey("Researcher:\nPlease confirm that the \nimpedance window is closed\nand that sync pulses are showing", new KeyCode[] { KeyCode.Y }, fullscreenTextDisplayer);
+        yield return PressAnyKey("Researcher:\nPlease begin the EEG recording now\nand confirm that it is running.", new KeyCode[] { KeyCode.R }, fullscreenTextDisplayer);
 
         scriptedEventReporter.ReportScriptedEvent("microphone test begin", new Dictionary<string, object>());
         yield return DoMicrophoneTest();
@@ -171,7 +176,7 @@ public class EditableExperiment : MonoBehaviour
             bool done = true;
             foreach (KeyCode keyCode in keyCodes)
             {
-                if (!Input.GetKey(keyCode))
+                if (!Input.GetKeyDown(keyCode))
                     done = false;
             }
             if (done)
@@ -265,6 +270,7 @@ public class EditableExperiment : MonoBehaviour
     private void SetSessionNumber()
     {
         int nextSessionNumber = 0;
+        UnityEPL.SetSessionNumber(0);
         while (System.IO.Directory.Exists(UnityEPL.GetDataPath()))
         {
             nextSessionNumber++;
