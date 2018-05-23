@@ -189,14 +189,21 @@ public class EditableExperiment : MonoBehaviour
 
     private IEnumerator PerformTrial(string[] trial_words, int word_index, bool practice)
     {
+        float FIRST_ISI_MIN = 0.6f;
+        float FIRST_ISI_MAX = 1f;
+        float STIMULUS_DISPLAY_LENGTH = 1.6f;
+        float SECOND_ISI_MIN = 0.8f;
+        float SECOND_ISI_MAX = 1.2f;
+        float RECALL_LENGTH = 2f;
+
         //isi
-        yield return new WaitForSeconds(Random.Range(0.6f, 1f));
+        yield return new WaitForSeconds(Random.Range(FIRST_ISI_MIN, FIRST_ISI_MAX));
 
         //stimulus
         string stimulus = trial_words[word_index];
         scriptedEventReporter.ReportScriptedEvent("stimulus", new Dictionary<string, object> () { { "word", stimulus }, { "index", word_index } });
         textDisplayer.DisplayText("stimulus display", stimulus);
-        yield return new WaitForSeconds(1.6f);
+        yield return new WaitForSeconds(STIMULUS_DISPLAY_LENGTH);
         scriptedEventReporter.ReportScriptedEvent("stimulus cleared", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
         textDisplayer.ClearText();
 
@@ -207,7 +214,7 @@ public class EditableExperiment : MonoBehaviour
         WriteAllLinesNoExtraNewline(lst_path, stimulus);
 
         //isi
-        yield return new WaitForSeconds(Random.Range(0.8f, 1.2f));
+        yield return new WaitForSeconds(Random.Range(SECOND_ISI_MIN, SECOND_ISI_MAX));
 
         //recall
         string wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + ".wav");
@@ -216,7 +223,7 @@ public class EditableExperiment : MonoBehaviour
         soundRecorder.StartRecording(wav_path);
         scriptedEventReporter.ReportScriptedEvent("recall start", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
         textDisplayer.DisplayText("recall prompt", "******");
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(RECALL_LENGTH);
         textDisplayer.ClearText();
         scriptedEventReporter.ReportScriptedEvent("recall stop", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
         soundRecorder.StopRecording();
