@@ -190,7 +190,7 @@ public class EditableExperiment : MonoBehaviour
     private IEnumerator PerformTrial(string[] trial_words, int word_index, bool practice)
     {
         //isi
-        yield return new WaitForSeconds(Random.Range(0.4f, 0.6f));
+        yield return new WaitForSeconds(Random.Range(0.6f, 1f));
 
         //stimulus
         string stimulus = trial_words[word_index];
