@@ -46,8 +46,19 @@ public class EditableExperiment : MonoBehaviour
         textDisplayer.ClearText();
         inputField.gameObject.SetActive(true);
         inputField.Select();
-        while (!Input.GetKeyDown(KeyCode.Return))
+        do
+        {
             yield return null;
+            while (!Input.GetKeyDown(KeyCode.Return))
+                yield return null;
+        }
+        while (!inputField.text.Equals("TEST") && (inputField.text.Length != 6 || 
+                                                   !inputField.text[0].Equals('L') || 
+                                                   !inputField.text[1].Equals('T') || 
+                                                   !inputField.text[2].Equals('P') || 
+                                                   !char.IsDigit(inputField.text[3]) || 
+                                                   !char.IsDigit(inputField.text[4]) || 
+                                                   !char.IsDigit(inputField.text[5])));
         UnityEPL.AddParticipant(inputField.text);
         SetSessionNumber();
         inputField.gameObject.SetActive(false);
@@ -125,7 +136,7 @@ public class EditableExperiment : MonoBehaviour
         Debug.Log("eeg verification");
         while (!System.IO.File.Exists("/Users/exp/bin/check_eegfile.py"))
         {
-            yield return PressAnyKey("I couldn't find /User/exp/bin/check_eegfile.py .  Please make sure it exists and then press RETURN to try agian.", new KeyCode[] { KeyCode.Return }, textDisplayer);
+            yield return PressAnyKey("I couldn't find /User/exp/bin/check_eegfile.py .  Please make sure it exists and then press RETURN to try again.", new KeyCode[] { KeyCode.Return }, textDisplayer);
         }
 
         System.Diagnostics.ProcessStartInfo processStart = new System.Diagnostics.ProcessStartInfo();
@@ -143,7 +154,17 @@ public class EditableExperiment : MonoBehaviour
             Debug.Log("exit code: " + process.ExitCode);
             if (!(process.ExitCode == 0))
             {
-                yield return PressAnyKey("check_eegfile.py indicated that the eeg file doesn't exist.  Press RETURN to try again.", new KeyCode[] { KeyCode.Return }, textDisplayer);
+                textDisplayer.DisplayText("skippable script", "check_eegfile.py indicated that the eeg file doesn't exist.  Press RETURN to try again or S to skip.");
+                yield return null;
+                while (true)
+                {
+                    yield return null;
+                    if (Input.GetKeyDown(KeyCode.Return))
+                        break;
+                    if (Input.GetKeyDown(KeyCode.S))
+                        yield break;
+                }
+                textDisplayer.ClearText();
                 yield return EEGVerificationScript(experiment, participant, session);
             }
             else
