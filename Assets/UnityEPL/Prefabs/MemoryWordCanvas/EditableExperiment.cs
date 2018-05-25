@@ -24,6 +24,8 @@ public class EditableExperiment : MonoBehaviour
 "We will now take some time\nto readjust the electrodes.\nWhen it is time to continue,\npress SPACE and RETURN.";
     private const string EXPERIMENTER_MESSAGE =
 "Researcher: Please confirm that the impedance window is closed and that sync pulses are showing.";
+    private const string FINAL_FREE_RECALL_MESSAGE =
+        "Now please recall as many words as you can remember from the entire session, in any order. You will be given 10 minutes to do this.\n\nPlease keep trying for the entire period as you may find that words continue popping up in your memory.\n\nPress RETURN to begin.";
 
 	void Start()
 	{
@@ -52,11 +54,11 @@ public class EditableExperiment : MonoBehaviour
         Cursor.visible = false;
 
         //Add part here which calls eeg file checking script
-
-        yield return null;
         yield return PressAnyKey(UnityEPL.GetParticipants()[0] + "\nsession " + UnityEPL.GetSessionNumber(), new KeyCode[] { KeyCode.Return }, textDisplayer);
         yield return PressAnyKey("Researcher:\nPlease confirm that the \nimpedance window is closed\nand that sync pulses are showing", new KeyCode[] { KeyCode.Y }, fullscreenTextDisplayer);
         yield return PressAnyKey("Researcher:\nPlease begin the EEG recording now\nand confirm that it is running.", new KeyCode[] { KeyCode.R }, fullscreenTextDisplayer);
+
+        yield return EEGVerificationScript(UnityEPL.GetExperimentName(), UnityEPL.GetParticipants()[0], UnityEPL.GetSessionNumber());
 
         scriptedEventReporter.ReportScriptedEvent("microphone test begin", new Dictionary<string, object>());
         yield return DoMicrophoneTest();
@@ -102,7 +104,7 @@ public class EditableExperiment : MonoBehaviour
             }
         }
 
-        yield return PressAnyKey("The vocalization testing is now complete.\n\nTo finish the session, please take ten minutes to repeat any words that you remember saying today.\n\nPress RETURN to begin.", new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
+        yield return PressAnyKey(FINAL_FREE_RECALL_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
 
         //final recall
         string wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), "final_recall.wav");
@@ -116,6 +118,39 @@ public class EditableExperiment : MonoBehaviour
 
         //over
         textDisplayer.DisplayText("end message", "Yay, the session is over!");
+    }
+
+    private IEnumerator EEGVerificationScript(string experiment, string participant, int session)
+    {
+        Debug.Log("eeg verification");
+        while (!System.IO.File.Exists("/Users/exp/bin/check_eegfile.py"))
+        {
+            yield return PressAnyKey("I couldn't find /User/exp/bin/check_eegfile.py .  Please make sure it exists and then press RETURN to try agian.", new KeyCode[] { KeyCode.Return }, textDisplayer);
+        }
+
+        System.Diagnostics.ProcessStartInfo processStart = new System.Diagnostics.ProcessStartInfo();
+        processStart.UseShellExecute = true;
+        processStart.FileName = "python";
+        processStart.Arguments = "/Users/exp/bin/check_eegfile.py " + experiment + " " + participant + " " + session.ToString();
+
+        using (System.Diagnostics.Process process = System.Diagnostics.Process.Start(processStart))
+        {
+            while (!process.HasExited)
+            {
+                yield return null;
+            }
+
+            Debug.Log("exit code: " + process.ExitCode);
+            if (!(process.ExitCode == 0))
+            {
+                yield return PressAnyKey("check_eegfile.py indicated that the eeg file doesn't exist.  Press RETURN to try again.", new KeyCode[] { KeyCode.Return }, textDisplayer);
+                yield return EEGVerificationScript(experiment, participant, session);
+            }
+            else
+            {
+                yield return PressAnyKey("Successfully verified existence of eeg file.  Press RETURN to continue.", new KeyCode[] { KeyCode.Return }, textDisplayer);
+            }
+        }
     }
 
     protected IEnumerator DoMicrophoneTest()
