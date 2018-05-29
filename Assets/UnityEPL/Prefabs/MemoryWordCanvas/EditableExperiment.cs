@@ -154,7 +154,7 @@ public class EditableExperiment : MonoBehaviour
             Debug.Log("exit code: " + process.ExitCode);
             if (!(process.ExitCode == 0))
             {
-                textDisplayer.DisplayText("skippable script", "check_eegfile.py indicated that the eeg file doesn't exist.  Press RETURN to try again or S to skip.");
+                textDisplayer.DisplayText("skippable script", "check_eegfile.py indicated that the eeg file doesn't exist.  Press RETURN to try again.");
                 yield return null;
                 while (true)
                 {
