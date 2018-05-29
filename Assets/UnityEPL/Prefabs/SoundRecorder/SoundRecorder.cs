@@ -9,7 +9,7 @@ public class SoundRecorder : MonoBehaviour
     private bool isRecording = false;
     private string nextOutputPath;
 
-    private const int SECONDS_IN_MEMORY = 600;
+    private const int SECONDS_IN_MEMORY = 900;
     public const int SAMPLE_RATE = 44100;
 
     void OnEnable()
@@ -58,16 +58,18 @@ public class SoundRecorder : MonoBehaviour
 
     public float[] LastSamples(int sampleCount)
     {
+
         float[] lastSamples = new float[sampleCount];
         int startSample = Microphone.GetPosition("") - sampleCount;
 
-        if (startSample < recording.samples - sampleCount)
+        if (startSample >= 0)
         {
             recording.GetData(lastSamples, startSample);
         }
         else
         {
             Debug.Log("audio wraparound");
+            startSample = startSample + recording.samples;
             float[] tailData = new float[recording.samples - startSample];
             recording.GetData(tailData, startSample);
             float[] headData = new float[sampleCount - tailData.Length];

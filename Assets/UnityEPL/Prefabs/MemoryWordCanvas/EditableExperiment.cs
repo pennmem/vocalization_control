@@ -118,7 +118,7 @@ public class EditableExperiment : MonoBehaviour
         yield return PressAnyKey(FINAL_FREE_RECALL_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
 
         //final recall
-        string wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), "final_recall.wav");
+        string wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), "ffr.wav");
         soundRecorder.StartRecording(wav_path);
         scriptedEventReporter.ReportScriptedEvent("final recall start", new Dictionary<string, object>());
         textDisplayer.DisplayText("final recall prompt", "******");
