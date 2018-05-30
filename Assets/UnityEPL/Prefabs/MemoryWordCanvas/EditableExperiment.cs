@@ -9,6 +9,8 @@ public class EditableExperiment : MonoBehaviour
     public UnityEngine.UI.InputField inputField;
     public ScriptedEventReporter scriptedEventReporter;
     public SoundRecorder soundRecorder;
+    public VoiceActivityDetection voiceActivityDetection;
+    public GameObject tooSoonWarning;
 
     public GameObject microphoneTestMessage;
 
@@ -18,14 +20,16 @@ public class EditableExperiment : MonoBehaviour
 
     private string[] words;
 
-    private const string INSTRUCTIONS_MESSAGE = 
-"We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n\n2) After each word, you will see a row of asterisks. While the asterisks are on the screen, say the word you just saw.\n\n3) You may hold down the SPACE BAR to pause the task and take breaks, and RETURN to resume.\n\nIt is very important for you to try to avoid all unnecessary motion while engaged in the study. Please try to limit these activities to the time during the breaks.\n\nYou are now ready to begin the study!\n\nIf you have any remaining questions, please ask the experimenter now.\n\nOtherwise, press RETURN to enter the practice period.";
+    private const string FIRST_INSTRUCTIONS_MESSAGE = 
+"We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n\n2) After each word, you will see a row of asterisks. While the asterisks are on the screen, say the word you just saw.\n\n3) You may hold down the SPACE BAR to pause the task and take breaks, and RETURN to resume.\n\nIt is very important for you to try to avoid all unnecessary motion while engaged in the study. Please try to limit these activities to the time during the breaks.";
+    private const string SECOND_INSTRUCTIONS_MESSAGE =
+"You are now ready to begin the study!\n\nIf you have any remaining questions, please ask the experimenter now.\n\nOtherwise, press RETURN to enter the practice period.";
     private const string BREAK_MESSAGE =
 "We will now take some time\nto readjust the electrodes.\nWhen it is time to continue,\npress SPACE and RETURN.";
     private const string EXPERIMENTER_MESSAGE =
 "Researcher: Please confirm that the impedance window is closed and that sync pulses are showing.";
     private const string FINAL_FREE_RECALL_MESSAGE =
-        "Now please recall as many words as you can remember from the entire session, in any order. You will be given 10 minutes to do this.\n\nPlease keep trying for the entire period as you may find that words continue popping up in your memory.\n\nPress RETURN to begin.";
+"Now please recall as many words as you can remember from the entire session, in any order. You will be given 10 minutes to do this.\n\nPlease keep trying for the entire period as you may find that words continue popping up in your memory.\n\nPress RETURN to begin.";
 
 	void Start()
 	{
@@ -76,7 +80,8 @@ public class EditableExperiment : MonoBehaviour
         scriptedEventReporter.ReportScriptedEvent("microphone test end", new Dictionary<string, object>());
 
         fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleLeft;
-        yield return PressAnyKey(INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
+        yield return PressAnyKey(FIRST_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
+        yield return PressAnyKey(SECOND_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
         fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleCenter;
 
         string[] practiceWords = new string[] { "RHINO", "BEAM", "DOG", "WATERMELON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN" };
@@ -106,7 +111,7 @@ public class EditableExperiment : MonoBehaviour
                 textDisplayer.ClearText();
                 scriptedEventReporter.ReportScriptedEvent("optional break stop", new Dictionary<string, object>());
             }
-            if (i%192 == 0 && i != 0)
+            if (i%288 == 0 && i != 0)
             {
                 scriptedEventReporter.ReportScriptedEvent("required break start", new Dictionary<string, object>());
                 yield return PressAnyKey(BREAK_MESSAGE, new KeyCode[] { KeyCode.Return, KeyCode.Space }, fullscreenTextDisplayer);
@@ -119,13 +124,13 @@ public class EditableExperiment : MonoBehaviour
 
         //final recall
         string wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), "ffr.wav");
-        soundRecorder.StartRecording(wav_path);
+        soundRecorder.StartRecording();
         scriptedEventReporter.ReportScriptedEvent("final recall start", new Dictionary<string, object>());
         textDisplayer.DisplayText("final recall prompt", "******");
         yield return new WaitForSeconds(600f);
         textDisplayer.ClearText();
         scriptedEventReporter.ReportScriptedEvent("final recall stop", new Dictionary<string, object>());
-        soundRecorder.StopRecording();
+        soundRecorder.StopRecording(wav_path);
 
         //over
         textDisplayer.DisplayText("end message", "Yay, the session is over!");
@@ -189,10 +194,10 @@ public class EditableExperiment : MonoBehaviour
             yield return new WaitForSeconds(lowBeep.clip.length);
 
             wavFilePath = System.IO.Path.Combine(UnityEPL.GetDataPath(), "microphone_test_" + DataReporter.RealWorldTime().ToString("yyyy-MM-dd_HH_mm_ss") + ".wav");
-            soundRecorder.StartRecording(wavFilePath);
+            soundRecorder.StartRecording();
             yield return new WaitForSeconds(5f);
 
-            soundRecorder.StopRecording();
+            soundRecorder.StopRecording(wavFilePath);
             textDisplayer.ClearText();
 
             yield return new WaitForSeconds(1f);
@@ -245,12 +250,14 @@ public class EditableExperiment : MonoBehaviour
 
     private IEnumerator PerformTrial(string[] trial_words, int word_index, bool practice)
     {
-        float FIRST_ISI_MIN = 0.6f;
-        float FIRST_ISI_MAX = 1f;
-        float STIMULUS_DISPLAY_LENGTH = 1.6f;
-        float SECOND_ISI_MIN = 0.8f;
-        float SECOND_ISI_MAX = 1.2f;
-        float RECALL_LENGTH = 2f;
+        float FIRST_ISI_MIN = 1.0f;
+        float FIRST_ISI_MAX = 1.6f;
+        float STIMULUS_DISPLAY_LENGTH_MIN = 1.6f;
+        float STIMULUS_DISPLAY_LENGTH_MAX = 2.4f;
+        float RECALL_WAIT_LENGTH = 2f;
+        float RECALL_MAIN_LENGTH = 2f;
+        float RECALL_EXTRA_LENGTH = 0.5f;
+
 
         //isi
         yield return new WaitForSeconds(Random.Range(FIRST_ISI_MIN, FIRST_ISI_MAX));
@@ -259,30 +266,67 @@ public class EditableExperiment : MonoBehaviour
         string stimulus = trial_words[word_index];
         scriptedEventReporter.ReportScriptedEvent("stimulus", new Dictionary<string, object> () { { "word", stimulus }, { "index", word_index } });
         textDisplayer.DisplayText("stimulus display", stimulus);
-        yield return new WaitForSeconds(STIMULUS_DISPLAY_LENGTH);
+        yield return new WaitForSeconds(Random.Range(STIMULUS_DISPLAY_LENGTH_MIN, STIMULUS_DISPLAY_LENGTH_MAX));
         scriptedEventReporter.ReportScriptedEvent("stimulus cleared", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
         textDisplayer.ClearText();
+
+
+        //recall
+        soundRecorder.StartRecording();
+        scriptedEventReporter.ReportScriptedEvent("recall start", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
+        float recallStartTime = Time.time;
+        bool someoneHasSpoken = false;
+        bool badTrial = false;
+        while (Time.time < recallStartTime + RECALL_WAIT_LENGTH)
+        {
+            if (voiceActivityDetection.SomeoneIsTalking())
+            {
+                someoneHasSpoken = true;
+                tooSoonWarning.SetActive(true);
+            }
+            yield return null;
+        }
+        if (someoneHasSpoken)
+            badTrial = true;
+        while (!someoneHasSpoken || voiceActivityDetection.SomeoneIsTalking() || Time.time < recallStartTime + RECALL_MAIN_LENGTH + RECALL_MAIN_LENGTH)
+        {
+            if (voiceActivityDetection.SomeoneIsTalking())
+                someoneHasSpoken = true;
+            yield return null;
+        }
+        yield return new WaitForSeconds(RECALL_EXTRA_LENGTH);
+        scriptedEventReporter.ReportScriptedEvent("recall stop", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
+
+
+        //stop recording and write .wav
+        string wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + ".wav");
+        if (practice)
+            wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_practice.wav");
+        if (badTrial)
+            wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_bad.wav");
+        if (practice && badTrial)
+            wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_practice_bad.wav");
+        soundRecorder.StopRecording(wav_path);
 
         //write .lst
         string lst_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + ".lst");
         if (practice)
             lst_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_practice.lst");
+        if (badTrial)
+            lst_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_bad.lst");
+        if (practice && badTrial)
+            lst_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_practice_bad.lst");
         WriteAllLinesNoExtraNewline(lst_path, stimulus);
 
-        //isi
-        yield return new WaitForSeconds(Random.Range(SECOND_ISI_MIN, SECOND_ISI_MAX));
 
-        //recall
-        string wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + ".wav");
-        if (practice)
-            wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_practice.wav");
-        soundRecorder.StartRecording(wav_path);
-        scriptedEventReporter.ReportScriptedEvent("recall start", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
-        textDisplayer.DisplayText("recall prompt", "******");
-        yield return new WaitForSeconds(RECALL_LENGTH);
-        textDisplayer.ClearText();
-        scriptedEventReporter.ReportScriptedEvent("recall stop", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
-        soundRecorder.StopRecording();
+        //beep
+        scriptedEventReporter.ReportScriptedEvent("beep start", new Dictionary<string, object>());
+        lowBeep.Play();
+        yield return new WaitForSeconds(lowBeep.clip.length);
+        scriptedEventReporter.ReportScriptedEvent("beep stop", new Dictionary<string, object>());
+
+        tooSoonWarning.SetActive(false);
+
     }
 
     private string[] GetWordpoolLines(string path)
