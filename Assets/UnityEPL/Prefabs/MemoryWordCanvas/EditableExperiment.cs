@@ -84,7 +84,11 @@ public class EditableExperiment : MonoBehaviour
         yield return PressAnyKey(SECOND_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
         fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleCenter;
 
-        string[] practiceWords = new string[] { "RHINO", "BEAM", "DOG", "WATERMELON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN" };
+        string[] practiceWords = new string[] { "RHINO", "BEAM", "DOG", "ICON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN",
+                                                "PEAFOWL", "CAULIFLOWER", "FROGGY", "TRICYCLE", "ORGANIZATION", "WARNING", "CHALK", "ARTERY", "PILLOW", "CHARGER",
+                                                "KERNING", "SAUERKRAUT", "SPIGOT", "ORCHID", "ITINERARY", "SPANISH", "TYKE", "GOAT", "WATERMELON", "ENERGY",
+                                                "CHUTE", "CZAR", "KAZOO", "DJINN", "COURSE", "ELEMENT", "HIPPOCAMPUS", "ARREARS", "BOULDER", "SPINE",
+                                                "TIRE", "BORSCHT", "CUTLERY", "BAZOOKA", "PITTANCE", "PENCIL", "POPPY", "LLAMA", "AGAVE", "CRAWL"};
         for (int i = 0; i < practiceWords.Length; i++)
         {
             yield return PerformTrial(practiceWords, i, true);
@@ -120,6 +124,15 @@ public class EditableExperiment : MonoBehaviour
             }
         }
 
+        if (UnityEPL.GetSessionNumber() >= 5)
+            yield return DoFinalRecall();
+
+        //over
+        textDisplayer.DisplayText("end message", "Yay, the session is over!");
+    }
+
+    private IEnumerator DoFinalRecall()
+    {
         yield return PressAnyKey(FINAL_FREE_RECALL_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
 
         //final recall
@@ -131,9 +144,6 @@ public class EditableExperiment : MonoBehaviour
         textDisplayer.ClearText();
         scriptedEventReporter.ReportScriptedEvent("final recall stop", new Dictionary<string, object>());
         soundRecorder.StopRecording(wav_path);
-
-        //over
-        textDisplayer.DisplayText("end message", "Yay, the session is over!");
     }
 
     private IEnumerator EEGVerificationScript(string experiment, string participant, int session)
