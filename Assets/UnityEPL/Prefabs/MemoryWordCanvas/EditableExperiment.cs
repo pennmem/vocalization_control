@@ -277,7 +277,7 @@ public class EditableExperiment : MonoBehaviour
 
         //stimulus
         string stimulus = trial_words[word_index];
-        scriptedEventReporter.ReportScriptedEvent("stimulus", new Dictionary<string, object> () { { "word", stimulus }, { "index", word_index } });
+        scriptedEventReporter.ReportScriptedEvent("stimulus", new Dictionary<string, object> () { { "word", stimulus }, { "index", word_index }, { "practice", practice } });
         textDisplayer.DisplayText("stimulus display", stimulus);
         yield return new WaitForSeconds(Random.Range(STIMULUS_DISPLAY_LENGTH_MIN, STIMULUS_DISPLAY_LENGTH_MAX));
         scriptedEventReporter.ReportScriptedEvent("stimulus cleared", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
