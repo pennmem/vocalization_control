@@ -89,6 +89,9 @@ public class EditableExperiment : MonoBehaviour
                                                 "KERNING", "SAUERKRAUT", "SPIGOT", "ORCHID", "ITINERARY", "SPANISH", "TYKE", "GOAT", "WATERMELON", "ENERGY",
                                                 "CHUTE", "CZAR", "KAZOO", "DJINN", "COURSE", "ELEMENT", "HIPPOCAMPUS", "ARREARS", "BOULDER", "SPINE",
                                                 "TIRE", "BORSCHT", "CUTLERY", "BAZOOKA", "PITTANCE", "PENCIL", "POPPY", "LLAMA", "AGAVE", "CRAWL"};
+        if (UnityEPL.GetSessionNumber() != 0)
+            practiceWords = new string[] { "RHINO", "BEAM", "DOG", "ICON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN" };
+
         for (int i = 0; i < practiceWords.Length; i++)
         {
             yield return PerformTrial(practiceWords, i, true);
@@ -264,7 +267,7 @@ public class EditableExperiment : MonoBehaviour
         float FIRST_ISI_MAX = 1.6f;
         float STIMULUS_DISPLAY_LENGTH_MIN = 1.6f;
         float STIMULUS_DISPLAY_LENGTH_MAX = 2.4f;
-        float RECALL_WAIT_LENGTH = 2f;
+        float RECALL_WAIT_LENGTH = 1f;
         float RECALL_MAIN_LENGTH = 2f;
         float RECALL_EXTRA_LENGTH = 0.5f;
 
@@ -305,7 +308,7 @@ public class EditableExperiment : MonoBehaviour
             yield return null;
         }
         yield return new WaitForSeconds(RECALL_EXTRA_LENGTH);
-        scriptedEventReporter.ReportScriptedEvent("recall stop", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
+        scriptedEventReporter.ReportScriptedEvent("recall stop", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index }, { "too_fast", badTrial} });
 
 
         //stop recording and write .wav
