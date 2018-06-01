@@ -301,7 +301,7 @@ public class EditableExperiment : MonoBehaviour
         }
         if (someoneHasSpoken)
             badTrial = true;
-        while (!someoneHasSpoken || voiceActivityDetection.SomeoneIsTalking() || Time.time < recallStartTime + RECALL_MAIN_LENGTH + RECALL_MAIN_LENGTH)
+        while (!someoneHasSpoken || voiceActivityDetection.SomeoneIsTalking() || Time.time < recallStartTime + RECALL_WAIT_LENGTH + RECALL_MAIN_LENGTH)
         {
             if (voiceActivityDetection.SomeoneIsTalking())
                 someoneHasSpoken = true;

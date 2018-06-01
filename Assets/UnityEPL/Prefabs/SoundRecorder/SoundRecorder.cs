@@ -7,7 +7,6 @@ public class SoundRecorder : MonoBehaviour
     private AudioClip recording;
     private float startTime;
     private bool isRecording = false;
-    private string nextOutputPath;
     
     private const int SECONDS_IN_MEMORY = 605;
     public const int SAMPLE_RATE = 44100;
