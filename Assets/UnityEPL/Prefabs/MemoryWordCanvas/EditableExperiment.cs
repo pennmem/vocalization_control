@@ -84,13 +84,7 @@ public class EditableExperiment : MonoBehaviour
         yield return PressAnyKey(SECOND_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
         fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleCenter;
 
-        string[] practiceWords = new string[] { "RHINO", "BEAM", "DOG", "ICON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN",
-                                                "PEAFOWL", "CAULIFLOWER", "FROGGY", "TRICYCLE", "ORGANIZATION", "WARNING", "CHALK", "ARTERY", "PILLOW", "CHARGER",
-                                                "KERNING", "SAUERKRAUT", "SPIGOT", "ORCHID", "ITINERARY", "SPANISH", "TYKE", "GOAT", "WATERMELON", "ENERGY",
-                                                "CHUTE", "CZAR", "KAZOO", "DJINN", "COURSE", "ELEMENT", "HIPPOCAMPUS", "ARREARS", "BOULDER", "SPINE",
-                                                "TIRE", "BORSCHT", "CUTLERY", "BAZOOKA", "PITTANCE", "PENCIL", "POPPY", "LLAMA", "AGAVE", "CRAWL"};
-        if (UnityEPL.GetSessionNumber() != 0)
-            practiceWords = new string[] { "RHINO", "BEAM", "DOG", "ICON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN" };
+        string[] practiceWords = new string[] { "RHINO", "BEAM", "DOG", "ICON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN" };
 
         for (int i = 0; i < practiceWords.Length; i++)
         {
@@ -108,7 +102,6 @@ public class EditableExperiment : MonoBehaviour
 
         for (int i = 0; i < words.Length; i++)
         {
-            yield return PerformTrial(words, i, false);
             if (Input.GetKey(KeyCode.Space))
             {
                 scriptedEventReporter.ReportScriptedEvent("optional break start", new Dictionary<string, object>());
@@ -118,20 +111,41 @@ public class EditableExperiment : MonoBehaviour
                 textDisplayer.ClearText();
                 scriptedEventReporter.ReportScriptedEvent("optional break stop", new Dictionary<string, object>());
             }
-            if (i%288 == 0 && i != 0)
+            if (i%192 == 0 && i != 0)
             {
                 scriptedEventReporter.ReportScriptedEvent("required break start", new Dictionary<string, object>());
                 yield return PressAnyKey(BREAK_MESSAGE, new KeyCode[] { KeyCode.Return, KeyCode.Space }, fullscreenTextDisplayer);
                 yield return PressAnyKey(EXPERIMENTER_MESSAGE, new KeyCode[] { KeyCode.Y }, textDisplayer);
                 scriptedEventReporter.ReportScriptedEvent("required break stop", new Dictionary<string, object>());
             }
+            if (i%24 == 0)
+            {
+                textDisplayer.DisplayText("block count", "Block " + (i / 24 + 1) + "/24");
+                yield return new WaitForSeconds(3f);
+                textDisplayer.ClearText();
+                yield return DoCountdown();
+            }
+            yield return PerformTrial(words, i, false);
         }
 
         if (UnityEPL.GetSessionNumber() >= 5)
+        {
+            yield return DoCountdown();
             yield return DoFinalRecall();
+        }
 
         //over
         textDisplayer.DisplayText("end message", "Yay, the session is over!");
+    }
+
+    private IEnumerator DoCountdown()
+    {
+        for (int i = 10; i > 0; i--)
+        {
+            textDisplayer.DisplayText("countdown", i.ToString());
+            yield return new WaitForSeconds(1);
+            textDisplayer.ClearText();
+        }
     }
 
     private IEnumerator DoFinalRecall()
@@ -246,13 +260,23 @@ public class EditableExperiment : MonoBehaviour
     {
         yield return null;
         pressAnyTextDisplayer.DisplayText("press any key prompt", displayText);
+        Dictionary<KeyCode, bool> keysPressed = new Dictionary<KeyCode, bool>();
+        foreach (KeyCode keycode in keyCodes)
+            keysPressed.Add(keycode, false);
         while (true)
         {
             yield return null;
-            bool done = true;
             foreach (KeyCode keyCode in keyCodes)
             {
-                if (!Input.GetKeyDown(keyCode))
+                if (Input.GetKeyDown(keyCode))
+                    keysPressed[keyCode] = true;
+                if (Input.GetKeyUp(keyCode))
+                    keysPressed[keyCode] = false;
+            }
+            bool done = true;
+            foreach (bool pressed in keysPressed.Values)
+            {
+                if (!pressed)
                     done = false;
             }
             if (done)
@@ -265,8 +289,8 @@ public class EditableExperiment : MonoBehaviour
     {
         float FIRST_ISI_MIN = 1.0f;
         float FIRST_ISI_MAX = 1.6f;
-        float STIMULUS_DISPLAY_LENGTH_MIN = 1.6f;
-        float STIMULUS_DISPLAY_LENGTH_MAX = 2.4f;
+        float STIMULUS_DISPLAY_LENGTH_MIN = 1.2f;
+        float STIMULUS_DISPLAY_LENGTH_MAX = 1.8f;
         float RECALL_WAIT_LENGTH = 1f;
         float RECALL_MAIN_LENGTH = 2f;
         float RECALL_EXTRA_LENGTH = 0.5f;
@@ -288,6 +312,7 @@ public class EditableExperiment : MonoBehaviour
         soundRecorder.StartRecording();
         scriptedEventReporter.ReportScriptedEvent("recall start", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
         float recallStartTime = Time.time;
+        float lastSpokenTime = Time.time;
         bool someoneHasSpoken = false;
         bool badTrial = false;
         while (Time.time < recallStartTime + RECALL_WAIT_LENGTH)
@@ -296,18 +321,22 @@ public class EditableExperiment : MonoBehaviour
             {
                 someoneHasSpoken = true;
                 tooSoonWarning.SetActive(true);
+                lastSpokenTime = Time.time;
             }
             yield return null;
         }
         if (someoneHasSpoken)
             badTrial = true;
-        while (!someoneHasSpoken || voiceActivityDetection.SomeoneIsTalking() || Time.time < recallStartTime + RECALL_WAIT_LENGTH + RECALL_MAIN_LENGTH)
+        
+        while (!someoneHasSpoken || voiceActivityDetection.SomeoneIsTalking() || Time.time < recallStartTime + RECALL_WAIT_LENGTH + RECALL_MAIN_LENGTH || Time.time < lastSpokenTime + RECALL_EXTRA_LENGTH)
         {
             if (voiceActivityDetection.SomeoneIsTalking())
+            {
                 someoneHasSpoken = true;
+                lastSpokenTime = Time.time;
+            }
             yield return null;
         }
-        yield return new WaitForSeconds(RECALL_EXTRA_LENGTH);
         scriptedEventReporter.ReportScriptedEvent("recall stop", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index }, { "too_fast", badTrial} });
 
 
@@ -315,20 +344,12 @@ public class EditableExperiment : MonoBehaviour
         string wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + ".wav");
         if (practice)
             wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_practice.wav");
-        if (badTrial)
-            wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_bad.wav");
-        if (practice && badTrial)
-            wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_practice_bad.wav");
         soundRecorder.StopRecording(wav_path);
 
         //write .lst
         string lst_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + ".lst");
         if (practice)
             lst_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_practice.lst");
-        if (badTrial)
-            lst_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_bad.lst");
-        if (practice && badTrial)
-            lst_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), word_index.ToString() + "_practice_bad.lst");
         WriteAllLinesNoExtraNewline(lst_path, stimulus);
 
 
