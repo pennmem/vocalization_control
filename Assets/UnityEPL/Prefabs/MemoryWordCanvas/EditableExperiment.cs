@@ -21,9 +21,11 @@ public class EditableExperiment : MonoBehaviour
     private string[] words;
 
     private const string FIRST_INSTRUCTIONS_MESSAGE = 
-"We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n\n2) After each word, you will see a row of asterisks. While the asterisks are on the screen, say the word you just saw.\n\n3) You may hold down the SPACE BAR to pause the task and take breaks, and RETURN to resume.\n\nIt is very important for you to try to avoid all unnecessary motion while engaged in the study. Please try to limit these activities to the time during the breaks.";
+"We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n2) After each word leaves the screen, pause briefly, then speak the word you just saw.\n3) If you began speaking too early, a message will appear onscreen to notify you. Try to minimize the number of trials where this occurs.\n4) You will be given 10-second breaks periodically throughout the session, as well as two longer mid-session breaks.";
     private const string SECOND_INSTRUCTIONS_MESSAGE =
-"You are now ready to begin the study!\n\nIf you have any remaining questions, please ask the experimenter now.\n\nOtherwise, press RETURN to enter the practice period.";
+"5) It is very important for you to avoid all unnecessary motion while engaged in the study. \n6) Please try to avoid blinking from the time that a word appears on the screen until you have spoken the word.";
+    private const string THIRD_INSTRUCTIONS_MESSAGE =
+"You are now ready to begin the study! \n\nIf you have any remaining questions, please ask the experimenter now. Otherwise, press RETURN to enter the practice period.";
     private const string BREAK_MESSAGE =
 "We will now take some time\nto readjust the electrodes.\nWhen it is time to continue,\npress SPACE and RETURN.";
     private const string EXPERIMENTER_MESSAGE =
@@ -82,6 +84,7 @@ public class EditableExperiment : MonoBehaviour
         fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleLeft;
         yield return PressAnyKey(FIRST_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
         yield return PressAnyKey(SECOND_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
+        yield return PressAnyKey(THIRD_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
         fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleCenter;
 
         string[] practiceWords = new string[] { "RHINO", "BEAM", "DOG", "ICON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN" };
