@@ -19,6 +19,7 @@ public class EditableExperiment : MonoBehaviour
     public AudioSource lowBeep;
 
     private string[] words;
+    private Dictionary<string, int> numberingWords;
 
     private const string FIRST_INSTRUCTIONS_MESSAGE = 
 "We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n2) After each word leaves the screen, pause briefly, then speak the word you just saw.\n3) If you began speaking too early, a message will appear onscreen to notify you. Try to minimize the number of trials where this occurs.\n4) You will be given 10-second breaks periodically throughout the session, as well as two longer mid-session breaks.";
@@ -37,12 +38,39 @@ public class EditableExperiment : MonoBehaviour
 	{
         UnityEPL.SetExperimentName("VFFR");
         LoadWords();
+        LoadNumberingPool();
         StartCoroutine(RunExperiment());
 	}
 
+    private void LoadNumberingPool()
+    {
+        numberingWords = new Dictionary<string, int>();
+        string[] numberingPool = GetWordpoolLines("wasnorm_wordpool", false);
+        for (int i = 1; i <= numberingPool.Length; i++)
+        {
+            numberingWords.Add(numberingPool[i - 1], i);
+        }
+    }
+
+    private int GetWordNumber(string word)
+    {
+        if (word[word.Length - 1] == ' ')
+            word = word.Substring(0, word.Length - 1);
+        if (numberingWords.ContainsKey(word))
+        {
+            Debug.Log(numberingWords[word]);
+            return numberingWords[word];
+        }
+        else
+        {
+            Debug.Log("-1");
+            return -1;
+        }
+    }
+
     private void LoadWords()
     {
-        words = GetWordpoolLines("wordpool_en");
+        words = GetWordpoolLines("wordpool_en", true);
     }
 
     private IEnumerator RunExperiment()
@@ -304,7 +332,7 @@ public class EditableExperiment : MonoBehaviour
 
         //stimulus
         string stimulus = trial_words[word_index];
-        scriptedEventReporter.ReportScriptedEvent("stimulus", new Dictionary<string, object> () { { "word", stimulus }, { "index", word_index }, { "practice", practice } });
+        scriptedEventReporter.ReportScriptedEvent("stimulus", new Dictionary<string, object> () { { "word", stimulus }, { "index", word_index }, {"ltp word number", GetWordNumber(stimulus)}, { "practice", practice } });
         textDisplayer.DisplayText("stimulus display", stimulus);
         yield return new WaitForSeconds(Random.Range(STIMULUS_DISPLAY_LENGTH_MIN, STIMULUS_DISPLAY_LENGTH_MAX));
         scriptedEventReporter.ReportScriptedEvent("stimulus cleared", new Dictionary<string, object>() { { "word", stimulus }, { "index", word_index } });
@@ -366,12 +394,13 @@ public class EditableExperiment : MonoBehaviour
 
     }
 
-    private string[] GetWordpoolLines(string path)
+    private string[] GetWordpoolLines(string path, bool shuffle)
     {
         string text = Resources.Load<TextAsset>(path).text;
         string[] lines = text.Split(new[] { '\r', '\n' });
 
-        Shuffle<string>(new System.Random(), lines);
+        if (shuffle)
+            Shuffle<string>(new System.Random(), lines);
 
         return lines;
     }
