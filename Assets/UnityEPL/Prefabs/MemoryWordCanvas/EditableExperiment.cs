@@ -24,7 +24,7 @@ public class EditableExperiment : MonoBehaviour
     private const string FIRST_INSTRUCTIONS_MESSAGE = 
 "We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n2) After each word leaves the screen, pause briefly, then speak the word you just saw.\n3) If you began speaking too early, a message will appear onscreen to notify you. Try to minimize the number of trials where this occurs.\n4) You will be given 10-second breaks periodically throughout the session, as well as two longer mid-session breaks.";
     private const string SECOND_INSTRUCTIONS_MESSAGE =
-"5) It is very important for you to avoid all unnecessary motion while engaged in the study. \n6) Please try to avoid blinking from the time that a word appears on the screen until you have spoken the word.";
+"5) It is very important for you to avoid all unnecessary motion while engaged in the study. \n6) Please try to avoid blinking from the time that a word appears on the screen until you have spoken the word. \n7) If you miss a word, just say \"pass\" to proceed to the next word.";
     private const string THIRD_INSTRUCTIONS_MESSAGE =
 "You are now ready to begin the study! \n\nIf you have any remaining questions, please ask the experimenter now. Otherwise, press RETURN to enter the practice period.";
     private const string BREAK_MESSAGE =
@@ -32,7 +32,7 @@ public class EditableExperiment : MonoBehaviour
     private const string EXPERIMENTER_MESSAGE =
 "Researcher: Please confirm that the impedance window is closed and that sync pulses are showing.";
     private const string FINAL_FREE_RECALL_MESSAGE =
-"Now please recall as many words as you can remember from the entire session, in any order. You will be given 10 minutes to do this.\n\nPlease keep trying for the entire period as you may find that words continue popping up in your memory.\n\nPress RETURN to begin.";
+"Now please recall as many words as you can remember from the this experiment, in any order. You will be given 10 minutes to do this.\n\nPlease keep trying for the entire period as you may find that words continue popping up in your memory.\n\nPress RETURN to begin.";
 
 	void Start()
 	{
@@ -115,6 +115,11 @@ public class EditableExperiment : MonoBehaviour
         yield return PressAnyKey(THIRD_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
         fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleCenter;
 
+        if (UnityEPL.GetSessionNumber() >= 5)
+        {
+            yield return DoFinalRecall();
+        }
+
         string[] practiceWords = new string[] { "RHINO", "BEAM", "DOG", "ICON", "FLOOD", "MIRROR", "COTTON", "IMAGE", "RING", "VIOLIN" };
 
         for (int i = 0; i < practiceWords.Length; i++)
@@ -157,12 +162,6 @@ public class EditableExperiment : MonoBehaviour
                 yield return DoCountdown();
             }
             yield return PerformTrial(words, i, false);
-        }
-
-        if (UnityEPL.GetSessionNumber() >= 5)
-        {
-            yield return DoCountdown();
-            yield return DoFinalRecall();
         }
 
         //over
@@ -332,6 +331,7 @@ public class EditableExperiment : MonoBehaviour
 
         //stimulus
         string stimulus = trial_words[word_index];
+        Debug.Log(stimulus);
         scriptedEventReporter.ReportScriptedEvent("stimulus", new Dictionary<string, object> () { { "word", stimulus }, { "index", word_index }, {"ltp word number", GetWordNumber(stimulus)}, { "practice", practice } });
         textDisplayer.DisplayText("stimulus display", stimulus);
         yield return new WaitForSeconds(Random.Range(STIMULUS_DISPLAY_LENGTH_MIN, STIMULUS_DISPLAY_LENGTH_MAX));

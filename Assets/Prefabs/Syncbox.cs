@@ -51,6 +51,7 @@ public class Syncbox : MonoBehaviour
             SyncPulse();
             //log the pulse
             scriptedEventReporter.ReportOutOfThreadScriptedEvent("Sync pulse begin", new System.Collections.Generic.Dictionary<string, object>());
+            Debug.Log("boop");
             //wait a random time between min and max
             float timeBetweenPulses = (float)(TIME_BETWEEN_PULSES_MIN + (random.NextDouble() * (TIME_BETWEEN_PULSES_MAX - TIME_BETWEEN_PULSES_MIN)));
             Thread.Sleep((int)(timeBetweenPulses * SECONDS_TO_MILLISECONDS));

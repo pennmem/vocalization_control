@@ -502,17 +502,17 @@ Prefab:
     - target: {fileID: 114003820354998086, guid: 1bfd92acf53ae4e64a498dc7d839d06d,
         type: 2}
       propertyPath: m_Text
-      value: 0.003-0.007 recommended
+      value: 0.003-0.010 recommended
       objectReference: {fileID: 0}
     - target: {fileID: 114124754564535872, guid: 1bfd92acf53ae4e64a498dc7d839d06d,
         type: 2}
       propertyPath: m_Value
-      value: 0.005
+      value: 0.0095
       objectReference: {fileID: 0}
     - target: {fileID: 114547385544265298, guid: 1bfd92acf53ae4e64a498dc7d839d06d,
         type: 2}
       propertyPath: m_Text
-      value: 0.005
+      value: 0.009
       objectReference: {fileID: 0}
     - target: {fileID: 1608865465841558, guid: 1bfd92acf53ae4e64a498dc7d839d06d, type: 2}
       propertyPath: m_IsActive
@@ -526,7 +526,7 @@ Prefab:
     - target: {fileID: 114551300955106232, guid: 1bfd92acf53ae4e64a498dc7d839d06d,
         type: 2}
       propertyPath: speakingThreshold
-      value: 0.004
+      value: 0.0095
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 1bfd92acf53ae4e64a498dc7d839d06d, type: 2}
