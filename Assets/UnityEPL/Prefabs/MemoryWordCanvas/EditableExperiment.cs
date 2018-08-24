@@ -24,15 +24,15 @@ public class EditableExperiment : MonoBehaviour
     private const string FIRST_INSTRUCTIONS_MESSAGE = 
 "We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n2) After each word leaves the screen, pause briefly, then speak the word you just saw.\n3) If you began speaking too early, a message will appear onscreen to notify you. Try to minimize the number of trials where this occurs.\n4) You will be given 10-second breaks periodically throughout the session, as well as two longer mid-session breaks.";
     private const string SECOND_INSTRUCTIONS_MESSAGE =
-"5) It is very important for you to avoid all unnecessary motion while engaged in the study. \n6) Please try to avoid blinking from the time that a word appears on the screen until you have spoken the word. \n7) If you miss a word, just say \"pass\" to proceed to the next word.";
+"5) It is very important for you to avoid all unnecessary motion while engaged in the study. \n6) Please try to avoid blinking from the time that a word appears on the screen until you have spoken the word. \n7) If you miss a word, just say 'pass' to proceed to the next word.";
     private const string THIRD_INSTRUCTIONS_MESSAGE =
-"You are now ready to begin the study! \n\nIf you have any remaining questions, please ask the experimenter now. Otherwise, press RETURN to enter the practice period.";
+"You are now ready to begin the study! \n\nIf you have any remaining questions, please ask the experimenter now. Otherwise, press RETURN to continue.";
     private const string BREAK_MESSAGE =
 "We will now take some time\nto readjust the electrodes.\nWhen it is time to continue,\npress SPACE and RETURN.";
     private const string EXPERIMENTER_MESSAGE =
 "Researcher: Please confirm that the impedance window is closed and that sync pulses are showing.";
     private const string FINAL_FREE_RECALL_MESSAGE =
-"Now please recall as many words as you can remember from the this experiment, in any order. You will be given 10 minutes to do this.\n\nPlease keep trying for the entire period as you may find that words continue popping up in your memory.\n\nPress RETURN to begin.";
+"We would like you to recall as many words as you can remember from all previous sessions, in any order. You will have ten minutes to perform this recall task as soon as the prompt appears ('******'). \n\nAs you attempt to recall these words, other words that did not appear in previous sessions may come to mind. Please go ahead and say these words aloud even if you believe they have not been presented or if you have already said them during this recall period.\n\nPress RETURN to begin.";
 
 	void Start()
 	{
@@ -100,8 +100,8 @@ public class EditableExperiment : MonoBehaviour
 
         //Add part here which calls eeg file checking script
         yield return PressAnyKey(UnityEPL.GetParticipants()[0] + "\nsession " + UnityEPL.GetSessionNumber(), new KeyCode[] { KeyCode.Return }, textDisplayer);
-        yield return PressAnyKey("Researcher:\nPlease confirm that the \nimpedance window is closed\nand that sync pulses are showing", new KeyCode[] { KeyCode.Y }, fullscreenTextDisplayer);
-        yield return PressAnyKey("Researcher:\nPlease begin the EEG recording now\nand confirm that it is running.", new KeyCode[] { KeyCode.R }, fullscreenTextDisplayer);
+        yield return PressAnyKey("Researcher:\nPlease confirm that the \nimpedance window is closed\nand that sync pulses are showing", new KeyCode[] { KeyCode.Y }, textDisplayer);
+        yield return PressAnyKey("Researcher:\nPlease begin the EEG recording now\nand confirm that it is running.", new KeyCode[] { KeyCode.R }, textDisplayer);
 
         yield return EEGVerificationScript(UnityEPL.GetExperimentName(), UnityEPL.GetParticipants()[0], UnityEPL.GetSessionNumber());
 
