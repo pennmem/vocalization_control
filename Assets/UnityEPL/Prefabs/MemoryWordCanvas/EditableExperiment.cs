@@ -22,17 +22,16 @@ public class EditableExperiment : MonoBehaviour
     private Dictionary<string, int> numberingWords;
 
     private const string FIRST_INSTRUCTIONS_MESSAGE = 
-"We will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n2) After each word leaves the screen, pause briefly, then speak the word you just saw.\n3) If you began speaking too early, a message will appear onscreen to notify you. Try to minimize the number of trials where this occurs.\n4) You will be given 10-second breaks periodically throughout the session, as well as two longer mid-session breaks.";
+"\n\n\nWe will now review the basics of the study, and the experimenter will answer any questions that you have.\n\n1) Words will come onscreen one at a time.\n2) After each word leaves the screen, pause briefly, then speak the word you just saw.\n3) If you began speaking too early, a message will appear onscreen to notify you. Try to minimize the number of trials where this occurs.\n4) You will be given 10-second breaks periodically throughout the session, as well as two longer mid-session breaks.\n\n\n";
     private const string SECOND_INSTRUCTIONS_MESSAGE =
-"5) It is very important for you to avoid all unnecessary motion while engaged in the study. \n6) Please try to avoid blinking from the time that a word appears on the screen until you have spoken the word. \n7) If you miss a word, just say 'pass' to proceed to the next word.";
-    private const string THIRD_INSTRUCTIONS_MESSAGE =
-"You are now ready to begin the study! \n\nIf you have any remaining questions, please ask the experimenter now. Otherwise, press RETURN to continue.";
+        "\n\n\n5) It is very important for you to avoid all unnecessary motion while engaged in the study. \n6) Please try to avoid blinking from the time that a word appears on the screen until you have spoken the word. \n7) If you miss a word, just say 'pass' to proceed to the next word.\n\n\nYou are now ready to begin the study! \n\nIf you have any remaining questions, please ask the experimenter now. Otherwise, press RETURN to continue.\n\n\n";
     private const string BREAK_MESSAGE =
-"We will now take some time\nto readjust the electrodes.\nWhen it is time to continue,\npress SPACE and RETURN.";
+"\n\n\nWe will now take some time\nto readjust the electrodes.\nWhen it is time to continue,\npress SPACE and RETURN.\n\n\n";
     private const string EXPERIMENTER_MESSAGE =
 "Researcher: Please confirm that the impedance window is closed and that sync pulses are showing.";
-    private const string FINAL_FREE_RECALL_MESSAGE =
-"We would like you to recall as many words as you can remember from all previous sessions, in any order. You will have ten minutes to perform this recall task as soon as the prompt appears ('******'). \n\nAs you attempt to recall these words, other words that did not appear in previous sessions may come to mind. Please go ahead and say these words aloud even if you believe they have not been presented or if you have already said them during this recall period.\n\nPress RETURN to begin.";
+    private const string FIRST_FINAL_FREE_RECALL_MESSAGE =
+"\n\n\nWe would like you to recall as many words as you can remember from all previous sessions, in any order. You will have ten minutes to perform this recall task as soon as the prompt appears ('******'). \n\nAs you attempt to recall these words, other words that did not appear in previous sessions may come to mind. Please go ahead and say these words aloud even if you believe they have not been presented or if you have already said them during this recall period.\n\n\n";
+    private const string SECOND_FINAL_FREE_RECALL_MESSAGE = "\n\n\nYou will receive a recall bonus of up to $5 in addition to your blink and trial performance bonuses. \n\nThe recall bonus will increase with the number of words from the previous sessions you recall. \nIt will not be affected by any words you say that were not shown in previous sessions or that you have already recalled.\n\nPress RETURN to begin.\n\n\n";
 
 	void Start()
 	{
@@ -112,7 +111,6 @@ public class EditableExperiment : MonoBehaviour
         fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleLeft;
         yield return PressAnyKey(FIRST_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
         yield return PressAnyKey(SECOND_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
-        yield return PressAnyKey(THIRD_INSTRUCTIONS_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
         fullscreenTextDisplayer.textElements[0].alignment = TextAnchor.MiddleCenter;
 
         if (UnityEPL.GetSessionNumber() >= 5)
@@ -180,7 +178,8 @@ public class EditableExperiment : MonoBehaviour
 
     private IEnumerator DoFinalRecall()
     {
-        yield return PressAnyKey(FINAL_FREE_RECALL_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
+        yield return PressAnyKey(FIRST_FINAL_FREE_RECALL_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
+        yield return PressAnyKey(SECOND_FINAL_FREE_RECALL_MESSAGE, new KeyCode[] { KeyCode.Return }, fullscreenTextDisplayer);
 
         //final recall
         string wav_path = System.IO.Path.Combine(UnityEPL.GetDataPath(), "ffr.wav");
